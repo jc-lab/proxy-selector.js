@@ -19,6 +19,18 @@
     "email": "development@jc-lab.net"
   },
   "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/jc-lab/proxy-selector.js/issues"
+  },
+  "homepage": "https://github.com/jc-lab/proxy-selector.js#readme",
+  "keywords": [
+    "proxy-selector",
+    "proxy-pool",
+    "proxy",
+    "socks",
+    "socks4",
+    "socks5"
+  ],
   "devDependencies": {
     "@types/mocha": "^7.0.2",
     "@types/node": "^14.0.13",
