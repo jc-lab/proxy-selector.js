@@ -43,14 +43,24 @@ describe('ProxyProvider Test', function () {
       numberOfMaxConcurrents: 2
     });
 
-    const a = await provider.getServer();
-    should.exist(a);
+    const results: any[] = [];
 
-    const b = await provider.getServer();
-    should.exist(b);
+    await Promise.all([
+      provider.getServer()
+        .then(s => results.push(s)),
+      provider.getServer()
+        .then(s => results.push(s)),
+      provider.getServer()
+        .then(s => results.push(s))
+    ]);
 
-    const c = await provider.getServer();
-    should.not.exist(c);
+    expect(
+      results.filter(v => !!v).length
+    ).eq(2);
+
+    expect(
+      results.filter(v => !v).length
+    ).eq(1);
   });
 
   it('concurrent unlimited', async function () {

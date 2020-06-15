@@ -54,23 +54,30 @@ describe('ProxyPool Test', function () {
     pool.addProvider(providerA);
     pool.addProvider(providerB);
 
-    const a = await pool.getServer();
-    should.exist(a);
+    const results: any[] = [];
 
-    const b = await pool.getServer();
-    should.exist(b);
+    await Promise.all([
+      pool.getServer()
+        .then(s => results.push(s)),
+      pool.getServer()
+        .then(s => results.push(s)),
+      pool.getServer()
+        .then(s => results.push(s)),
+      pool.getServer()
+        .then(s => results.push(s)),
+      pool.getServer()
+        .then(s => results.push(s)),
+      pool.getServer()
+        .then(s => results.push(s))
+    ]);
 
-    const c = await pool.getServer();
-    should.exist(c);
+    expect(
+      results.filter(v => !!v).length
+    ).eq(4);
 
-    const d = await pool.getServer();
-    should.exist(d);
-
-    const e = await pool.getServer();
-    should.not.exist(e);
-
-    const f = await pool.getServer();
-    should.not.exist(f);
+    expect(
+      results.filter(v => !v).length
+    ).eq(2);
   });
 
   it('concurrent unlimited', async function () {
