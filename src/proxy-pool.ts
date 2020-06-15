@@ -8,24 +8,19 @@ interface IProxyProviderItem {
   provider: ProxyProvider;
 }
 
-export class PooledProxyServerContext {
+export class PooledProxyServerContext extends ProxyServerContext {
   private _pool: ProxyPool;
   private _ctx: ProxyServerContext;
-  private _alive: boolean;
 
   constructor(pool: ProxyPool, ctx: ProxyServerContext) {
+    super(ctx.getProvider(), ctx.getServer());
     this._pool = pool;
     this._ctx = ctx;
-    this._alive = true;
   }
 
   public close(): void {
-    this._alive = false;
     this._pool[S_PROXY_CONTEXT_CLOSE](this._ctx);
-  }
-
-  public get alive(): boolean {
-    return this._alive;
+    super.close();
   }
 }
 
@@ -47,7 +42,7 @@ export class ProxyPool {
   }
 
   public [S_PROXY_CONTEXT_CLOSE](ctx: ProxyServerContext): void {
-    ctx.close();
+    // Nothing
   }
 
   public close(): Promise<void> {

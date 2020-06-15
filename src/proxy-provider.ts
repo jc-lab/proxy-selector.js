@@ -1,7 +1,11 @@
 import * as uuid from 'uuid';
+import * as https from 'https';
 import OrderSafety from './order-safety';
 import {
-  ProxyServer
+  IProxyServer,
+  IProxyServerInfo,
+  ProxyServer,
+  ProxyType
 } from './proxy-server';
 
 const S_PROXY_CONTEXT_CLOSE = Symbol('PROXY_CONTEXT_CLOSE');
@@ -11,7 +15,7 @@ interface BanItem {
   banedAt: [number, number];
 }
 
-export class ProxyServerContext {
+export class ProxyServerContext implements IProxyServer {
   private _provider: ProxyProvider;
   private _server: ProxyServer;
   private _alive: boolean;
@@ -29,6 +33,50 @@ export class ProxyServerContext {
 
   public get alive(): boolean {
     return this._alive;
+  }
+
+  public getProvider(): ProxyProvider {
+    return this._provider;
+  }
+
+  public getServer(): ProxyServer {
+    return this._server;
+  }
+
+  public get id(): string {
+    return this._server.id;
+  }
+
+  public get isHttpProxy(): boolean {
+    return this._server.isHttpProxy;
+  }
+
+  public get isSocksProxy(): boolean {
+    return this._server.isSocksProxy;
+  }
+
+  public get proxyType(): ProxyType {
+    return this._server.proxyType;
+  }
+
+  public get socksFlags(): number {
+    return this._server.socksFlags;
+  }
+
+  public get socksVersion(): number {
+    return this._server.socksVersion;
+  }
+
+  public createSocksAgent(opts?: https.AgentOptions) {
+    return this._server.createSocksAgent(opts);
+  }
+
+  public getProxyServerInfo(): Promise<IProxyServerInfo> {
+    return this._server.getProxyServerInfo();
+  }
+
+  public healthCheck(): Promise<boolean> {
+    return this._server.healthCheck();
   }
 }
 

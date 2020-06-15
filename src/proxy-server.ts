@@ -29,7 +29,19 @@ export interface IProxyServerInfo {
   password: string | null;
 }
 
-export abstract class ProxyServer {
+export interface IProxyServer {
+  readonly id: string;
+  readonly proxyType: ProxyType;
+  readonly isHttpProxy: boolean;
+  readonly isSocksProxy: boolean;
+  readonly socksVersion: number;
+  readonly socksFlags: number;
+  healthCheck(): Promise<boolean>;
+  getProxyServerInfo(): Promise<IProxyServerInfo>;
+  createSocksAgent(opts?: https.AgentOptions);
+}
+
+export abstract class ProxyServer implements IProxyServer {
   private _uuid: string;
 
   protected _proxyType: ProxyType;
