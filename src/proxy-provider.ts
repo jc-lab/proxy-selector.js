@@ -125,4 +125,8 @@ export abstract class ProxyProvider {
     const id = (typeof serverId === 'string') ? serverId : serverId.id;
     this._banList.delete(id);
   }
+
+  public close(): Promise<void> {
+    return Promise.resolve();
+  }
 }

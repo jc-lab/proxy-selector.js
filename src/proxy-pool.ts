@@ -50,6 +50,25 @@ export class ProxyPool {
     ctx.close();
   }
 
+  public close(): Promise<void> {
+    const it = this._providers.entries();
+    let cur = it.next();
+    const plist: Promise<any>[] = [];
+    while (!cur.done) {
+      try {
+        plist.push(cur.value[1].provider.close());
+      } catch (e) {
+        // ignore
+      }
+      cur = it.next();
+    }
+    return plist.reduce((prev, cur) => {
+      return prev
+        .then(() => cur)
+        .catch(e => cur);
+    });
+  }
+
   public getServer(ignoreError?: boolean): Promise<PooledProxyServerContext | null> {
     const _ignoreError = ignoreError || false;
     const providerList = (() => {
