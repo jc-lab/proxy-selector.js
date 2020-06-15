@@ -1,4 +1,5 @@
 import * as uuid from 'uuid';
+import OrderSafety from './order-safety';
 import {
   ProxyServer
 } from './proxy-server';
@@ -31,12 +32,19 @@ export class ProxyServerContext {
   }
 }
 
+interface IGetServerQueueItem {
+  resolve: (a: ProxyServerContext | null) => void;
+  reject: (e: any) => void;
+}
+
 export abstract class ProxyProvider {
   protected _id: string = uuid.v4();
   protected _banList: Map<string, BanItem> = new Map();
   protected abstract _numberOfMaxConcurrents: number;
   protected _usedServers: Set<string> = new Set();
   private _serverList: ProxyServer[] = [];
+
+  private _getServerQueue: OrderSafety = new OrderSafety();
 
   protected _setServerList(serverList: ProxyServer[]) {
     this._serverList = serverList;
@@ -71,36 +79,38 @@ export abstract class ProxyProvider {
   }
 
   public getServer(): Promise<ProxyServerContext | null> {
-    const list = this._serverList
-      .filter(s => !this._usedServers.has(s.id) && !this._banList.has(s.id))
-      .sort(() => Math.random() - Math.random());
+    return this._getServerQueue.run<ProxyServerContext | null>(() => {
+      const list = this._serverList
+        .filter(s => !this._usedServers.has(s.id) && !this._banList.has(s.id))
+        .sort(() => Math.random() - Math.random());
 
-    if (this._computeAvailableServerCount(list.length) <= 0) {
-      return Promise.resolve(null);
-    }
-
-    const doExecute = (resolve: (v: ProxyServerContext | null) => void, reject: (e) => void) => {
-      const current = list.shift();
-      if (current) {
-        const _current = current;
-        current.healthCheck()
-          .then(health => {
-            if (health) {
-              this._usedServers.add(_current.id);
-              resolve(new ProxyServerContext(this, _current));
-            } else {
-              doExecute(resolve, reject);
-            }
-          })
-          .catch(e => {
-            reject(e);
-          });
-      } else {
-        resolve(null);
+      if (this._computeAvailableServerCount(list.length) <= 0) {
+        return Promise.resolve(null);
       }
-    };
-    return new Promise<ProxyServerContext|null>((resolve, reject) => {
-      doExecute(resolve, reject);
+
+      const doExecute = (resolve: (v: ProxyServerContext | null) => void, reject: (e) => void) => {
+        const current = list.shift();
+        if (current) {
+          const _current = current;
+          current.healthCheck()
+            .then(health => {
+              if (health) {
+                this._usedServers.add(_current.id);
+                resolve(new ProxyServerContext(this, _current));
+              } else {
+                doExecute(resolve, reject);
+              }
+            })
+            .catch(e => {
+              reject(e);
+            });
+        } else {
+          resolve(null);
+        }
+      };
+      return new Promise<ProxyServerContext|null>((resolve, reject) => {
+        doExecute(resolve, reject);
+      });
     });
   }
 
