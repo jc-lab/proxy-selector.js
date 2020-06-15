@@ -126,6 +126,10 @@ export abstract class ProxyProvider {
     this._banList.delete(id);
   }
 
+  public init(): Promise<void> {
+    return Promise.resolve();
+  }
+
   public close(): Promise<void> {
     return Promise.resolve();
   }
